@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue (this file, `.gitignore`, `make-shortcuts.ps1`). Each game is its own git repo under `Games/`, ignored here.
+Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `shortcuts.json`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
 
 ## Layout
 
@@ -10,10 +10,11 @@ Personal workspace of Nintendo game decompilations, static recompilations and PC
 | `Games/sms-pc-port/` | Super Mario Sunshine PC port from the matching decomp. Own `AGENTS.md`. |
 | `Games/ssbu-recomp-main/ssbu-recomp-main/` | Super Smash Bros. Ultimate static recomp (note the doubled folder). Own `CLAUDE.md` and `.claude/skills/`. |
 | `Games/totk-recomp/` | Prebuilt Tears of the Kingdom recomp install; no source. Own `AGENTS.md`. |
+| `Games/Nebula/` | Installed Nebula recomp app (installer-managed, not a repo; holds a 5 GB toolchain). |
+| `Games/SM64DS Port/` | Installed SM64DS Port launcher (installer-managed, not a repo; owns the `.tang` mod file type). |
 | `exes/` | Windows `.lnk` launchers for every game (git-ignored, generated). |
-| `make-shortcuts.ps1` | Regenerates `exes/`. |
-
-Also launched from `exes/`, but installed outside this folder: Nebula and SM64DS Port under `%LOCALAPPDATA%\Programs\`.
+| `shortcuts.json` | What each launcher in `exes/` points at. |
+| `tools/sync_shortcuts.py` | Syncs `exes/`, and repairs Start Menu and Desktop shortcuts, from `shortcuts.json`. |
 
 ## Working on a game
 
@@ -38,13 +39,20 @@ Sessions run in WSL, but the games and their builds are Windows programs.
   - Windows refuses (`Permission denied`) while the game, or any file in its folder, is open. Run `Get-Process | ? Path -like '*Decomps*'`.
   - If a WSL process (such as another agent session) has its working directory in the folder, WSL shows the moved folder as `d?????????` until that process exits. The files are fine.
   - Claude Code keys session history by path (`~/.claude/projects/-mnt-c-...`), so a moved folder starts with no history.
+  - Nebula and SM64DS Port are registered installs. Moving either means updating its `HKCU\...\Uninstall\{Nebula,SM64DSPort}` values (`InstallLocation`, `UninstallString`, `DisplayIcon`). Nebula also needs `HKCU\Software\Nebula\InstallRoot`; SM64DS needs `HKCU\Software\Classes\SM64DSLauncher.Mod` (`DefaultIcon`, `shell\open\command`).
+  - Then sync shortcuts (below).
 
-## Launchers
+## Shortcuts
 
-- Regenerate after a game moves, a build output path changes, or Nebula updates:
-  `powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\Users\micha\Decomps\make-shortcuts.ps1'`.
-  It prints `MISSING` for any target that doesn't exist yet.
-- To add a game, add a row to `$items` in `make-shortcuts.ps1`. Shortcuts start in the target's own folder because the games load data relative to it.
+After moving or renaming a game folder, adding a game, changing a build output path, or a Nebula update, use the `sync-shortcuts` skill (`.claude/skills/sync-shortcuts/SKILL.md`). In short:
+
+```sh
+python3 tools/sync_shortcuts.py --check --external   # preview; exits 1 if anything would change
+python3 tools/sync_shortcuts.py --external           # apply: exes/ + Start Menu/Desktop repairs
+```
+
+- To add a game, add an entry to `shortcuts.json` (`target` relative to this root; a `*` glob picks the newest match).
+- `--external` only rewrites shortcuts whose target is missing. Other apps' shortcuts that happen to live under `AppData\Local\Programs` (such as Zed) must never be repointed.
 - SSBU launches through `Play SSBU.bat` and `Play SSBU (modded).bat`, not an exe.
 - Sunshine launches `sms-standalone.exe` (game data embedded), not `sms.exe` (which needs the disc image passed in).
 

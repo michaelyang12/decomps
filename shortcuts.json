@@ -1,0 +1,12 @@
+{
+  "_comment": "Launchers generated into exes/ by tools/sync_shortcuts.py. target is relative to the Decomps root; * globs pick the highest (natural-sorted) match.",
+  "shortcuts": [
+    { "name": "Super Mario 64 (sm64ex-alo)", "target": "Games/sm64ex-alo/build/us_pc/sm64.us.f3dex2e.exe" },
+    { "name": "Super Mario Sunshine",        "target": "Games/sms-pc-port/build/windows-64/sms-standalone.exe" },
+    { "name": "Zelda TOTK",                  "target": "Games/totk-recomp/totk.exe" },
+    { "name": "Play SSBU",                   "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU.bat" },
+    { "name": "Play SSBU (modded)",          "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU (modded).bat" },
+    { "name": "Nebula",                      "target": "Games/Nebula/versions/*/Nebula.exe" },
+    { "name": "SM64DS Port",                 "target": "Games/SM64DS Port/SM64DSLauncher.exe" }
+  ]
+}
