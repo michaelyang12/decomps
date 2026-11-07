@@ -232,6 +232,7 @@ async function refresh() {
   const keepId = lib ? lib.games[sel]?.id : store("selected");
   const first = !lib;
   lib = next;
+  if (lib.added.length) toast(`Found ${lib.added.length === 1 ? "a new game" : "new games"}, added to shortcuts.json: ${lib.added.join(", ")}`, true);
   renderChrome();
   if (!lib.games.length) {
     shelf.replaceChildren(el("p", "empty", `No games in ${lib.root}\\shortcuts.json.`));
@@ -246,9 +247,10 @@ async function refresh() {
 // ---------- actions ----------
 
 let toastTimer;
-function toast(msg) {
+function toast(msg, info = false) {
   const t = $("toast");
   t.textContent = msg;
+  t.classList.toggle("info", info);
   t.classList.add("on");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("on"), 5000);
@@ -279,8 +281,9 @@ function openArtFolder() {
   if (g) invoke("open_art_folder", { id: g.id }).catch((e) => toast(String(e)));
 }
 
+// Rescan the library folders for new games, then refetch all art.
 function refreshArt() {
-  if (lib && !lib.fetching) invoke("refresh_art").catch((e) => toast(String(e)));
+  if (lib && !lib.fetching) invoke("refresh").catch((e) => toast(String(e)));
 }
 
 async function toggleFullscreen(on = !lib?.fullscreen) {
@@ -364,4 +367,5 @@ requestAnimationFrame(pollPads);
 // ---------- start ----------
 
 listen("library-changed", () => refresh());
+listen("scan-failed", (e) => toast(`Library scan failed: ${e.payload}`));
 refresh();

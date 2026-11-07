@@ -3,6 +3,7 @@
 
 mod art;
 mod manifest;
+mod scan;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -40,6 +41,8 @@ struct Shared {
     saved: Mutex<Saved>,
     running: Mutex<HashSet<String>>,
     fetching: AtomicBool,
+    /// Games the last scan added, until the UI picks them up.
+    added: Mutex<Vec<String>>,
 }
 
 impl Shared {
@@ -89,6 +92,8 @@ struct Library {
     has_art_key: bool,
     fetching: bool,
     fullscreen: bool,
+    /// Names added to shortcuts.json by a scan since the last call.
+    added: Vec<String>,
     games: Vec<Game>,
 }
 
@@ -131,6 +136,7 @@ fn library(st: Ctx) -> Result<Library, String> {
         has_art_key: st.sgdb_key().is_some(),
         fetching: st.fetching.load(Ordering::SeqCst),
         fullscreen: saved.fullscreen,
+        added: st.added.lock().map(|mut a| std::mem::take(&mut *a)).unwrap_or_default(),
         games,
     })
 }
@@ -264,9 +270,30 @@ fn fetch_art(app: AppHandle, shared: Arc<Shared>, force: bool) {
     });
 }
 
+/// Scans the library folders, tells the UI what was added, then fetches art (force: every game).
+fn rescan(app: AppHandle, shared: Arc<Shared>, force_art: bool) {
+    std::thread::spawn(move || {
+        match scan::scan(&shared.root) {
+            Ok(r) => {
+                if let Ok(mut a) = shared.added.lock() {
+                    a.extend(r.added);
+                }
+            }
+            Err(err) => {
+                let _ = app.emit("scan-failed", err);
+            }
+        }
+        let _ = app.emit("library-changed", ());
+        fetch_art(app, shared, force_art);
+    });
+}
+
+/// The refresh button: rescan the library folders and refetch all art.
 #[tauri::command]
-fn refresh_art(app: AppHandle, st: Ctx) {
-    fetch_art(app, st.inner().clone(), true);
+fn refresh(app: AppHandle, st: Ctx) {
+    if !st.fetching.load(Ordering::SeqCst) {
+        rescan(app, st.inner().clone(), true);
+    }
 }
 
 /// art://localhost/<art key>/<slot>  (http://art.localhost/... in WebView2)
@@ -316,12 +343,26 @@ fn main() {
         let _ = fs::write(art::cache_dir(&root).join("fetch.log"), log.join("\n") + "\n");
         return;
     }
+    // Headless: decomps-launcher --scan  (adds unlisted game folders to shortcuts.json, writes art/cache/scan.log, exits)
+    if args.iter().any(|a| a == "--scan") {
+        let log = match scan::scan(&root) {
+            Ok(r) => format!(
+                "added: {}\nnothing launchable: {}\n",
+                if r.added.is_empty() { "-".to_string() } else { r.added.join(", ") },
+                if r.skipped.is_empty() { "-".to_string() } else { r.skipped.join(", ") }
+            ),
+            Err(err) => format!("error: {err}\n"),
+        };
+        let _ = fs::create_dir_all(art::cache_dir(&root));
+        let _ = fs::write(art::cache_dir(&root).join("scan.log"), log);
+        return;
+    }
     let start_fullscreen = args.iter().any(|a| a == "--fullscreen");
 
     let art_root = root.clone();
     tauri::Builder::default()
         .register_uri_scheme_protocol("art", move |_ctx, req| serve_art(&art_root, req.uri().path()))
-        .invoke_handler(tauri::generate_handler![library, launch, open_folder, open_art_folder, set_fullscreen, refresh_art, quit])
+        .invoke_handler(tauri::generate_handler![library, launch, open_folder, open_art_folder, set_fullscreen, refresh, quit])
         .setup(move |app| {
             let state_path = app.path().app_local_data_dir()?.join("state.json");
             let saved: Saved = fs::read_to_string(&state_path).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
@@ -332,6 +373,7 @@ fn main() {
                 saved: Mutex::new(saved),
                 running: Mutex::new(HashSet::new()),
                 fetching: AtomicBool::new(false),
+                added: Mutex::new(Vec::new()),
             });
             shared.saved.lock().unwrap().fullscreen = fullscreen;
             app.manage(shared.clone());
@@ -340,7 +382,7 @@ fn main() {
                 let _ = w.show();
                 let _ = w.set_focus();
             }
-            fetch_art(app.handle().clone(), shared, false);
+            rescan(app.handle().clone(), shared, false);
             Ok(())
         })
         .run(tauri::generate_context!())

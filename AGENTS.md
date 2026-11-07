@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `shortcuts.json`, `launcher/`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
+Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `TODO.md`, `shortcuts.json`, `launcher/`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
 
 ## Layout
 
@@ -17,6 +17,7 @@ Personal workspace of Nintendo game decompilations, static recompilations and PC
 | `launcher/` | Decomps Launcher, a Tauri desktop app (Rust + plain HTML/JS) that shows every game with art and launches it. |
 | `art/` | Launcher art: `art/cache/` (downloaded) and `art/custom/` (hand-placed overrides). Git-ignored. |
 | `.env` | API keys for the launcher (`STEAMGRIDDB_API_KEY`). Git-ignored. |
+| `TODO.md` | Open setup steps and ideas for the workspace. |
 | `tools/sync_shortcuts.py` | Syncs `exes/`, and repairs Start Menu and Desktop shortcuts, from `shortcuts.json`. |
 
 ## Working on a game
@@ -47,14 +48,28 @@ Sessions run in WSL, but the games and their builds are Windows programs.
 
 ## Manifest (`shortcuts.json`)
 
-One entry per game tile and per `exes/` launcher. Adding a game means adding one entry, then building the game and syncing shortcuts (below):
+The game list, one entry per line. It drives both the launcher tiles and the `exes/` launchers.
+
+**Adding a game:** put its folder in `Games/` (or another `scan` folder) and start the launcher, or press its refresh button. Every folder directly inside a scan folder is one game. Folders that no entry covers get an entry appended, with a guessed target and the folder name as title. Then polish the new entry (`title`, `platform`, `art`) and sync shortcuts (below). From a shell, `decomps-launcher.exe --scan` does the same headlessly and writes `art/cache/scan.log`.
+
+How the target is guessed (`launcher/src/scan.rs`):
+
+1. `Play*.bat`/`Play*.cmd` scripts within two levels, one entry each. `Play X (modded)` gets port `modded`.
+2. Otherwise, an exe named like the folder (`Games/Nebula/.../Nebula.exe`).
+3. Otherwise, the largest exe that isn't an installer, uninstaller, settings app or crash handler. Folders such as `tools/`, `deps/`, `toolchain/` and `build/work/` are skipped.
+
+Version folders in the path (`1.0.2`, `v2`) become `*`, so updates keep resolving. With an empty manifest, the scan reproduces every current target. If a guess is wrong, edit `target`; the scan never touches existing entries. A folder that isn't a game goes in `ignore`.
 
 ```json
-{ "name": "Super Mario Galaxy", "target": "Games/Nebula/versions/*/Nebula.exe",
-  "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp",
-  "art": { "libretro": "Super Mario Galaxy (USA)" } }
+"scan": ["Games"],
+"ignore": ["Games/some-tool"],
+"shortcuts": [
+  {"name": "Nebula", "target": "Games/Nebula/versions/*/Nebula.exe", "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp", "art": {"libretro": "Super Mario Galaxy (USA)"}}
+]
 ```
 
+- `scan`: library folders, relative to this root or absolute. Default `["Games"]`.
+- `ignore`: folders the scan skips (and `sync_shortcuts.py` doesn't report as unlisted).
 - `name` (required): the `exes/<name>.lnk` name and the tile's stable id. Renaming it drops the tile's play history.
 - `target` (required): relative to this root. A `*` glob picks the highest natural-sorted match.
 - `title`: display name (default `name`). Tiles with the same title share art, and later ones are badged with the last comma-separated part of `port` (this is how `Play SSBU (modded)` is shown).
@@ -63,11 +78,11 @@ One entry per game tile and per `exes/` launcher. Adding a game means adding one
 - `art.libretro`: the No-Intro name as listed on thumbnails.libretro.com, e.g. `Super Mario 64 (USA)`. Omit it if the system isn't covered (Switch isn't).
 - `art.steamgriddb`: SteamGridDB game id (number, preferred once known) or search term (string). Default: search by `title`.
 
-The list is flat, with no grouping by console: everything here runs as a native Windows program, so `platform` is only a label and an art lookup key.
+The list is flat, with no grouping by console: everything here runs as a native Windows program, so `platform` is only a label and an art lookup key. The launcher and `sync_shortcuts.py` write the file in the same layout (`format_manifest` / `dump_manifest`); keep them in step.
 
 ## Launcher
 
-`launcher/` builds `decomps-launcher.exe`: a library of every manifest entry with cover art, a hero backdrop and logo for the selected game, last-played and playtime. Windowed by default; F11 or Start on a controller toggles a fullscreen couch mode, which is fully gamepad-driven (A play, X open folder, Y refresh art, D-pad/stick to move, LB/RB jump to the ends). Each game starts with its working directory set to the target's folder, the same as the `.lnk` files.
+`launcher/` builds `decomps-launcher.exe`: a library of every manifest entry with cover art, a hero backdrop and logo for the selected game, last-played and playtime. Windowed by default; F11 or Start on a controller toggles a fullscreen couch mode, which is fully gamepad-driven (A play, X open folder, Y rescan and refresh art, D-pad/stick to move, LB/RB jump to the ends). Each game starts with its working directory set to the target's folder, the same as the `.lnk` files.
 
 - **Build** (Windows; Rust via rustup with the MSVC toolchain and VS 2022 Build Tools):
 
@@ -76,8 +91,8 @@ The list is flat, with no grouping by console: everything here runs as a native 
   ```
 
   This produces `launcher/target/release/decomps-launcher.exe`, a single exe with the UI embedded. Build from a Windows path: for a worktree under WSL's `/home`, mirror `launcher/` to a Windows folder first, since cargo and MSVC aren't reliable on `\\wsl$` paths. `cargo test` runs the manifest unit tests.
-- **Run:** the exe finds the Decomps root by `--root <dir>`, else `DECOMPS_ROOT`, else the nearest parent folder holding `shortcuts.json` and `Games/`, else `%USERPROFILE%\Decomps`. `--fullscreen` starts in couch mode. `--fetch-art` refetches all art headlessly and exits.
-- **Art:** fetched in the background on start, for games with empty slots (retried weekly, or every game on Refresh art). Slots are `cover` (2:3 box art), `hero` (wide backdrop) and `logo`. Sources, in order:
+- **Run:** the exe finds the Decomps root by `--root <dir>`, else `DECOMPS_ROOT`, else the nearest parent folder holding `shortcuts.json` and `Games/`, else `%USERPROFILE%\Decomps`. `--fullscreen` starts in couch mode. `--fetch-art` refetches all art headlessly and exits; `--scan` adds new game folders and exits.
+- **Art:** fetched in the background on start, after the library scan, for games with empty slots (retried weekly, or every game on the refresh button, which also rescans). Slots are `cover` (2:3 box art), `hero` (wide backdrop) and `logo`. Sources, in order:
   1. SteamGridDB (cover, hero, logo). Needs `STEAMGRIDDB_API_KEY=...` in `.env` here; a free key comes from steamgriddb.com > Preferences > API.
   2. libretro-thumbnails (`Named_Boxarts` for the cover, `Named_Snaps` for the hero). No key needed, but no Switch and no logos.
 

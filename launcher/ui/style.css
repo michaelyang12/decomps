@@ -317,6 +317,7 @@ body.pad .hints, body.fs .hints { display: flex; }
   transition: opacity 200ms ease, transform 200ms ease;
 }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast.info { background: #1d2b3a; border-color: #35557a; color: #e3efff; }
 
 .empty { color: var(--muted); padding: 0 var(--gutter); font-size: 15px; }
 

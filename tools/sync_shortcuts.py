@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import glob
 import json
 import os
 import re
@@ -72,6 +73,20 @@ def same_path(a: str, b: str) -> bool:
 
 def natural_key(p: Path):
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", str(p))]
+
+
+def dump_manifest(manifest: dict) -> str:
+    """Same layout as format_manifest() in launcher/src/scan.rs: one top-level key per line, one entry per line."""
+    def compact(v):
+        return json.dumps(v, ensure_ascii=False)
+    lines = []
+    for k, v in manifest.items():
+        if k == "shortcuts" and v:
+            val = "[\n" + ",\n".join("    " + compact(e) for e in v) + "\n  ]"
+        else:
+            val = compact(v)
+        lines.append(f"  {compact(k)}: {val}")
+    return "{\n" + ",\n".join(lines) + "\n}\n"
 
 
 # ---------- PowerShell bridge (WScript.Shell is the only stdlib-free way to read/write .lnk) ----------
@@ -143,7 +158,7 @@ def search_by_name(name: str) -> list[Path]:
 def resolve(entry: dict, notes: list[str]) -> Path | None:
     rel = entry["target"]
     if any(c in rel for c in "*?["):
-        matches = sorted(ROOT.glob(rel), key=natural_key)
+        matches = sorted((Path(m) for m in glob.glob(str(ROOT / rel))), key=natural_key)
         return matches[-1] if matches else None
     p = ROOT / rel
     if p.exists() or win_exists(p):
@@ -209,12 +224,18 @@ def main() -> int:
     for p in unmanaged:
         print(f"{'delete ' if args.prune else 'extra  '}  exes/{p.name} (not in shortcuts.json)")
 
-    # Games/ folders with no shortcut
+    # Library folders (manifest "scan", default Games/) with no shortcut. The launcher adds these itself.
     game_dirs = {d.name.lower(): d for d in GAMES.iterdir() if d.is_dir()} if GAMES.is_dir() else {}
-    covered = {Path(e["target"]).parts[1].lower() for e in entries if Path(e["target"]).parts[:1] == ("Games",)}
-    for key, d in sorted(game_dirs.items()):
-        if key not in covered:
-            print(f"unlisted Games/{d.name} has no shortcut; add it to shortcuts.json")
+    targets = [e["target"].replace("\\", "/").lower() for e in entries]
+    ignored = {i.replace("\\", "/").rstrip("/").lower() for i in manifest.get("ignore", [])}
+    for sd in manifest.get("scan", ["Games"]):
+        base = ROOT / sd
+        if not base.is_dir():
+            continue
+        for d in sorted(base.iterdir(), key=lambda p: p.name.lower()):
+            rel = f"{sd.replace(chr(92), '/').rstrip('/')}/{d.name}"
+            if d.is_dir() and rel.lower() not in ignored and not any(t.startswith(rel.lower() + "/") for t in targets):
+                print(f"unlisted {rel} has no shortcut; run the launcher (or decomps-launcher --scan) to add it")
 
     # Start Menu / Desktop
     ext_writes = []
@@ -247,7 +268,7 @@ def main() -> int:
         for p in unmanaged:
             p.unlink()
     if manifest_changed:
-        MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        MANIFEST.write_text(dump_manifest(manifest), encoding="utf-8")
         print("wrote shortcuts.json (commit it)")
     return 0
 

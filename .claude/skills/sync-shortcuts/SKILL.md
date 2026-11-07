@@ -18,7 +18,7 @@ description: Update the Windows game shortcuts in Decomps (exes/ launchers, Star
    - `missing`: the target doesn't exist and no single file with that name exists under `Games/`. The game isn't built yet, or the path changed. Fix the `target` in `shortcuts.json`.
    - `moved`: the target was found by name elsewhere under `Games/`. On a real run it is written back to `shortcuts.json`.
    - `ambiguous`: several files have that name. Set the right `target` in `shortcuts.json` by hand.
-   - `unlisted Games/X`: a game folder has no shortcut. Add an entry, asking the user which file launches it if that isn't obvious.
+   - `unlisted Games/X`: a game folder has no shortcut. Run the launcher's scan (`decomps-launcher.exe --scan`, or start the launcher) to append a guessed entry, check its `target` (ask the user if the right file isn't obvious), then fill in `title`/`platform`/`art`. If the folder isn't a game, add it to the manifest's `ignore` list.
    - `repair`: a Start Menu or Desktop shortcut with a missing target was matched to a file under `Games/`.
    - `broken`: same as `repair`, but no match was found. Report it to the user.
    - `extra`: a `.lnk` in `exes/` that isn't in the manifest. Delete it only with `--prune`, if the user wants that.
@@ -32,7 +32,8 @@ description: Update the Windows game shortcuts in Decomps (exes/ launchers, Star
 - `target` is relative to the Decomps root. A `*` glob picks the highest natural-sorted match; use one where a version folder changes, as in `Games/Nebula/versions/*/Nebula.exe`.
 - Point at the file the user actually launches. For example, SSBU uses `Play SSBU.bat` and `Play SSBU (modded).bat`, and Sunshine uses `sms-standalone.exe`.
 - The `name` becomes `exes/<name>.lnk`. It is also the launcher tile's id, so renaming it resets that tile's play history.
-- Entries may also carry `title`, `platform`, `port` and `art`, which the launcher (`launcher/`) reads; this script ignores them and keeps them when it rewrites a moved `target`. When adding a game, fill them in too. See `AGENTS.md` > Manifest.
+- Entries may also carry `title`, `platform`, `port` and `art`, which the launcher (`launcher/`) reads; this script ignores them and keeps them when it rewrites a moved `target`. Top-level `scan` and `ignore` list the library folders and the folders that aren't games. See `AGENTS.md` > Manifest.
+- The file is written one entry per line, by this script and by the launcher's scan, in the same layout.
 
 ## What it does not do
 
