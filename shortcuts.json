@@ -1,12 +1,23 @@
 {
-  "_comment": "Launchers generated into exes/ by tools/sync_shortcuts.py. target is relative to the Decomps root; * globs pick the highest (natural-sorted) match.",
+  "_comment": "One entry per game. tools/sync_shortcuts.py makes exes/<name>.lnk from name + target; the launcher (launcher/) shows one tile per entry using the other fields. target is relative to the Decomps root; * globs pick the highest (natural-sorted) match. See AGENTS.md > Manifest.",
   "shortcuts": [
-    { "name": "Super Mario 64 (sm64ex-alo)", "target": "Games/sm64ex-alo/build/us_pc/sm64.us.f3dex2e.exe" },
-    { "name": "Super Mario Sunshine",        "target": "Games/sms-pc-port/build/windows-64/sms-standalone.exe" },
-    { "name": "Zelda TOTK",                  "target": "Games/totk-recomp/totk.exe" },
-    { "name": "Play SSBU",                   "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU.bat" },
-    { "name": "Play SSBU (modded)",          "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU (modded).bat" },
-    { "name": "Nebula",                      "target": "Games/Nebula/versions/*/Nebula.exe" },
-    { "name": "SM64DS Port",                 "target": "Games/SM64DS Port/SM64DSLauncher.exe" }
+    { "name": "Super Mario 64 (sm64ex-alo)", "target": "Games/sm64ex-alo/build/us_pc/sm64.us.f3dex2e.exe",
+      "title": "Super Mario 64", "platform": "Nintendo 64", "port": "sm64ex-alo PC port",
+      "art": { "libretro": "Super Mario 64 (USA)" } },
+    { "name": "Super Mario Sunshine", "target": "Games/sms-pc-port/build/windows-64/sms-standalone.exe",
+      "title": "Super Mario Sunshine", "platform": "GameCube", "port": "Decomp PC port",
+      "art": { "libretro": "Super Mario Sunshine (USA)" } },
+    { "name": "Zelda TOTK", "target": "Games/totk-recomp/totk.exe",
+      "title": "The Legend of Zelda: Tears of the Kingdom", "platform": "Switch", "port": "Static recomp" },
+    { "name": "Play SSBU", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU.bat",
+      "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp" },
+    { "name": "Play SSBU (modded)", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU (modded).bat",
+      "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp, modded" },
+    { "name": "Nebula", "target": "Games/Nebula/versions/*/Nebula.exe",
+      "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp",
+      "art": { "libretro": "Super Mario Galaxy (USA)" } },
+    { "name": "SM64DS Port", "target": "Games/SM64DS Port/SM64DSLauncher.exe",
+      "title": "Super Mario 64 DS", "platform": "Nintendo DS", "port": "SM64DS Port",
+      "art": { "libretro": "Super Mario 64 DS (USA)" } }
   ]
 }

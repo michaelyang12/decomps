@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decomps</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true">
+    <div class="bg" id="bgA"></div>
+    <div class="bg" id="bgB"></div>
+    <div class="scrim"></div>
+  </div>
+
+  <header class="bar">
+    <div class="brand"><span class="brand-mark">&#9733;</span>Decomps<span class="count" id="count"></span></div>
+    <div class="tools">
+      <span class="status" id="status"></span>
+      <button class="tool" id="btnArt" title="Refresh art (F5)" aria-label="Refresh art">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>
+      </button>
+      <button class="tool" id="btnFull" title="Fullscreen (F11, or Start on a controller)" aria-label="Toggle fullscreen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="detail" id="detail">
+    <div class="heading">
+      <img class="logo" id="logo" alt="">
+      <h1 class="title" id="title"></h1>
+    </div>
+    <div class="meta" id="meta"></div>
+    <div class="actions">
+      <button class="play" id="btnPlay">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <button class="ghost" id="btnFolder" title="Show the game in Explorer (X on a controller)">Open folder</button>
+      <button class="ghost" id="btnArtFolder" title="Open this game's custom art folder">Custom art</button>
+    </div>
+    <p class="note" id="note"></p>
+  </main>
+
+  <section class="shelf" id="shelf" role="listbox" aria-label="Games"></section>
+
+  <footer class="hints" id="hints">
+    <span><b class="btn-a">A</b>Play</span>
+    <span><b class="btn-x">X</b>Open folder</span>
+    <span><b class="btn-y">Y</b>Refresh art</span>
+    <span><b class="btn-s">&#9776;</b>Fullscreen</span>
+  </footer>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

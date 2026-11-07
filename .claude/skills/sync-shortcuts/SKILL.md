@@ -31,7 +31,8 @@ description: Update the Windows game shortcuts in Decomps (exes/ launchers, Star
 
 - `target` is relative to the Decomps root. A `*` glob picks the highest natural-sorted match; use one where a version folder changes, as in `Games/Nebula/versions/*/Nebula.exe`.
 - Point at the file the user actually launches. For example, SSBU uses `Play SSBU.bat` and `Play SSBU (modded).bat`, and Sunshine uses `sms-standalone.exe`.
-- The `name` becomes `exes/<name>.lnk`.
+- The `name` becomes `exes/<name>.lnk`. It is also the launcher tile's id, so renaming it resets that tile's play history.
+- Entries may also carry `title`, `platform`, `port` and `art`, which the launcher (`launcher/`) reads; this script ignores them and keeps them when it rewrites a moved `target`. When adding a game, fill them in too. See `AGENTS.md` > Manifest.
 
 ## What it does not do
 

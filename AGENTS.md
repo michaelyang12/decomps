@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `shortcuts.json`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
+Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `shortcuts.json`, `launcher/`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
 
 ## Layout
 
@@ -13,7 +13,10 @@ Personal workspace of Nintendo game decompilations, static recompilations and PC
 | `Games/Nebula/` | Installed Nebula recomp app (installer-managed, not a repo; holds a 5 GB toolchain). |
 | `Games/SM64DS Port/` | Installed SM64DS Port launcher (installer-managed, not a repo; owns the `.tang` mod file type). |
 | `exes/` | Windows `.lnk` launchers for every game (git-ignored, generated). |
-| `shortcuts.json` | What each launcher in `exes/` points at. |
+| `shortcuts.json` | The game list: what each launcher in `exes/` points at, plus title, platform and art lookups for `launcher/`. |
+| `launcher/` | Decomps Launcher, a Tauri desktop app (Rust + plain HTML/JS) that shows every game with art and launches it. |
+| `art/` | Launcher art: `art/cache/` (downloaded) and `art/custom/` (hand-placed overrides). Git-ignored. |
+| `.env` | API keys for the launcher (`STEAMGRIDDB_API_KEY`). Git-ignored. |
 | `tools/sync_shortcuts.py` | Syncs `exes/`, and repairs Start Menu and Desktop shortcuts, from `shortcuts.json`. |
 
 ## Working on a game
@@ -41,6 +44,46 @@ Sessions run in WSL, but the games and their builds are Windows programs.
   - Claude Code keys session history by path (`~/.claude/projects/-mnt-c-...`), so a moved folder starts with no history.
   - Nebula and SM64DS Port are registered installs. Moving either means updating its `HKCU\...\Uninstall\{Nebula,SM64DSPort}` values (`InstallLocation`, `UninstallString`, `DisplayIcon`). Nebula also needs `HKCU\Software\Nebula\InstallRoot`; SM64DS needs `HKCU\Software\Classes\SM64DSLauncher.Mod` (`DefaultIcon`, `shell\open\command`).
   - Then sync shortcuts (below).
+
+## Manifest (`shortcuts.json`)
+
+One entry per game tile and per `exes/` launcher. Adding a game means adding one entry, then building the game and syncing shortcuts (below):
+
+```json
+{ "name": "Super Mario Galaxy", "target": "Games/Nebula/versions/*/Nebula.exe",
+  "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp",
+  "art": { "libretro": "Super Mario Galaxy (USA)" } }
+```
+
+- `name` (required): the `exes/<name>.lnk` name and the tile's stable id. Renaming it drops the tile's play history.
+- `target` (required): relative to this root. A `*` glob picks the highest natural-sorted match.
+- `title`: display name (default `name`). Tiles with the same title share art, and later ones are badged with the last comma-separated part of `port` (this is how `Play SSBU (modded)` is shown).
+- `platform`: original console (`Nintendo 64`, `GameCube`, `Wii`, `Nintendo DS`, `Switch`). Shown as a label, and picks the libretro-thumbnails system (`Nintendo - <platform>`; override with `art.libretroSystem`).
+- `port`: short description of the build, e.g. `Static recomp`.
+- `art.libretro`: the No-Intro name as listed on thumbnails.libretro.com, e.g. `Super Mario 64 (USA)`. Omit it if the system isn't covered (Switch isn't).
+- `art.steamgriddb`: SteamGridDB game id (number, preferred once known) or search term (string). Default: search by `title`.
+
+The list is flat, with no grouping by console: everything here runs as a native Windows program, so `platform` is only a label and an art lookup key.
+
+## Launcher
+
+`launcher/` builds `decomps-launcher.exe`: a library of every manifest entry with cover art, a hero backdrop and logo for the selected game, last-played and playtime. Windowed by default; F11 or Start on a controller toggles a fullscreen couch mode, which is fully gamepad-driven (A play, X open folder, Y refresh art, D-pad/stick to move, LB/RB jump to the ends). Each game starts with its working directory set to the target's folder, the same as the `.lnk` files.
+
+- **Build** (Windows; Rust via rustup with the MSVC toolchain and VS 2022 Build Tools):
+
+  ```sh
+  powershell.exe -NoProfile -Command 'cd C:\Users\micha\Decomps\launcher; cargo build --release'
+  ```
+
+  This produces `launcher/target/release/decomps-launcher.exe`, a single exe with the UI embedded. Build from a Windows path: for a worktree under WSL's `/home`, mirror `launcher/` to a Windows folder first, since cargo and MSVC aren't reliable on `\\wsl$` paths. `cargo test` runs the manifest unit tests.
+- **Run:** the exe finds the Decomps root by `--root <dir>`, else `DECOMPS_ROOT`, else the nearest parent folder holding `shortcuts.json` and `Games/`, else `%USERPROFILE%\Decomps`. `--fullscreen` starts in couch mode. `--fetch-art` refetches all art headlessly and exits.
+- **Art:** fetched in the background on start, for games with empty slots (retried weekly, or every game on Refresh art). Slots are `cover` (2:3 box art), `hero` (wide backdrop) and `logo`. Sources, in order:
+  1. SteamGridDB (cover, hero, logo). Needs `STEAMGRIDDB_API_KEY=...` in `.env` here; a free key comes from steamgriddb.com > Preferences > API.
+  2. libretro-thumbnails (`Named_Boxarts` for the cover, `Named_Snaps` for the hero). No key needed, but no Switch and no logos.
+
+  Gaps show a generated placeholder tile. To override any slot by hand, put `cover.png`, `hero.png` or `logo.png` (jpg and webp also work) in `art/custom/<title-slug>/`; the tile's **Custom art** button opens that folder. Results of the last fetch are in `art/cache/fetch.log`. Only titles and ids are sent to these services, never game data.
+- **State:** play history and the fullscreen choice live in `%LOCALAPPDATA%\local.decomps.launcher\state.json`.
+- A launch whose process exits within 15 seconds counts as a hand-off to another process (a launcher stub), so it records no playtime and fullscreen mode doesn't pop back over the game.
 
 ## Shortcuts
 
