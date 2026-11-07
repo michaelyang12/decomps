@@ -2,12 +2,12 @@
   "_comment": "The game list. Every folder in a \"scan\" dir is one game: the launcher (launcher/) appends an entry for any folder no entry covers, guessing its target. Edit entries to fix a guess or add title/platform/art; list folders that aren't games in \"ignore\". tools/sync_shortcuts.py makes exes/<name>.lnk from name + target. Paths are relative to the Decomps root; * globs pick the highest natural-sorted match. See AGENTS.md > Manifest.",
   "scan": ["Games"],
   "shortcuts": [
-    {"name": "Super Mario 64 (sm64ex-alo)", "target": "Games/sm64ex-alo/build/us_pc/sm64.us.f3dex2e.exe", "title": "Super Mario 64", "platform": "Nintendo 64", "port": "sm64ex-alo PC port", "art": {"libretro": "Super Mario 64 (USA)"}},
-    {"name": "Super Mario Sunshine", "target": "Games/sms-pc-port/build/windows-64/sms-standalone.exe", "title": "Super Mario Sunshine", "platform": "GameCube", "port": "Decomp PC port", "art": {"libretro": "Super Mario Sunshine (USA)"}},
-    {"name": "Zelda TOTK", "target": "Games/totk-recomp/totk.exe", "title": "The Legend of Zelda: Tears of the Kingdom", "platform": "Switch", "port": "Static recomp"},
-    {"name": "Play SSBU", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU.bat", "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp"},
-    {"name": "Play SSBU (modded)", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU (modded).bat", "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp, modded"},
-    {"name": "Nebula", "target": "Games/Nebula/versions/*/Nebula.exe", "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp", "art": {"libretro": "Super Mario Galaxy (USA)"}},
-    {"name": "SM64DS Port", "target": "Games/SM64DS Port/SM64DSLauncher.exe", "title": "Super Mario 64 DS", "platform": "Nintendo DS", "port": "SM64DS Port", "art": {"libretro": "Super Mario 64 DS (USA)"}}
+    {"name": "Super Mario 64 (sm64ex-alo)", "target": "Games/sm64ex-alo/build/us_pc/sm64.us.f3dex2e.exe", "title": "Super Mario 64", "platform": "Nintendo 64", "port": "sm64ex-alo PC port", "art": {"libretro": "Super Mario 64 (USA)", "steamgriddb": 37177}},
+    {"name": "Super Mario Sunshine", "target": "Games/sms-pc-port/build/windows-64/sms-standalone.exe", "title": "Super Mario Sunshine", "platform": "GameCube", "port": "Decomp PC port", "art": {"libretro": "Super Mario Sunshine (USA)", "steamgriddb": 34899}},
+    {"name": "Zelda TOTK", "target": "Games/totk-recomp/totk.exe", "title": "The Legend of Zelda: Tears of the Kingdom", "platform": "Switch", "port": "Static recomp", "art": {"steamgriddb": 5303117}},
+    {"name": "Play SSBU", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU.bat", "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp", "art": {"steamgriddb": 5245293}},
+    {"name": "Play SSBU (modded)", "target": "Games/ssbu-recomp-main/ssbu-recomp-main/Play SSBU (modded).bat", "title": "Super Smash Bros. Ultimate", "platform": "Switch", "port": "Static recomp, modded", "art": {"steamgriddb": 5245293}},
+    {"name": "Nebula", "target": "Games/Nebula/versions/*/Nebula.exe", "title": "Super Mario Galaxy", "platform": "Wii", "port": "Nebula static recomp", "art": {"libretro": "Super Mario Galaxy (USA)", "steamgriddb": 36389}},
+    {"name": "SM64DS Port", "target": "Games/SM64DS Port/SM64DSLauncher.exe", "title": "Super Mario 64 DS", "platform": "Nintendo DS", "port": "SM64DS Port", "art": {"libretro": "Super Mario 64 DS (USA)", "steamgriddb": 35542}}
   ]
 }

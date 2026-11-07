@@ -16,17 +16,8 @@
 
 ## SteamGridDB art
 
-Until this is done, TotK and both SSBU tiles show placeholder covers (libretro-thumbnails has no Switch art), and no game has a logo.
+Done 2026-11-07: the key is in `.env` (git-ignored, and in `.git/info/exclude` until the merge brings the `.gitignore` rule). All 6 games matched the right SteamGridDB game, and their ids are pinned in `shortcuts.json`. Art for every game is already in `art/cache/`.
 
-- [ ] Get a free API key: steamgriddb.com > log in > Preferences > API.
-- [ ] Save it where only the launcher reads it. `.env` is git-ignored:
-
-  ```sh
-  echo STEAMGRIDDB_API_KEY=<key> > /mnt/c/Users/micha/Decomps/.env
-  ```
-
-- [ ] Press the launcher's refresh button, or run `decomps-launcher.exe --fetch-art`. Check `art/cache/fetch.log`.
-- [ ] Pin each game's SteamGridDB id in `shortcuts.json` (`"art": {"steamgriddb": <id>}`) so a title search can't drift to the wrong game. The ids it matched are in `art/cache/<title-slug>/meta.json` (`steamgriddb_id`); confirm each one on steamgriddb.com.
 - [ ] Look over the chosen art; replace any you dislike by dropping files into `art/custom/<title-slug>/` (the tile's **Custom art** button).
 
 ## Ideas
