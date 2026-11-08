@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `.gitignore`, `TODO.md`, `shortcuts.json`, `launcher/`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
+Personal workspace of Nintendo game decompilations, static recompilations and PC ports, played on Windows. This root repo tracks only workspace glue: this file, `README.md` (with screenshots in `docs/images/`), `LICENSE`, `.gitignore`, `TODO.md`, `shortcuts.json`, `launcher/`, `tools/` and `.claude/skills/`. Each game is its own folder under `Games/` (usually its own git repo), ignored here.
 
 ## Layout
 
@@ -117,4 +117,4 @@ python3 tools/sync_shortcuts.py --external           # apply: exes/ + Start Menu
 
 ## Git
 
-Root repo: no remote. Agents may commit here; never push. Short imperative subjects. Never stage anything under `Games/` or `exes/`.
+Root repo: `origin` is `git@github.com:michaelyang12/decomps.git` (**public**), default branch `main`. Agents may commit here; push only when the owner asks. Never put game data, `.env` (API keys) or downloaded art in it. Short imperative subjects. Never stage anything under `Games/`, `exes/` or `art/`.
