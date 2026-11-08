@@ -91,6 +91,7 @@ The list is flat, with no grouping by console: everything here runs as a native 
   ```
 
   This produces `launcher/target/release/decomps-launcher.exe`, a single exe with the UI embedded. Build from a Windows path: for a worktree under WSL's `/home`, mirror `launcher/` to a Windows folder first, since cargo and MSVC aren't reliable on `\\wsl$` paths. `cargo test` runs the manifest unit tests.
+- **Shortcut:** Start Menu and Desktop shortcuts, both called **Decomps Launcher**, point at the built exe, so rebuilding in place keeps them working. There is one shortcut for both modes: the app reopens in whichever mode it was last left in. `sync_shortcuts.py` doesn't manage it, because the launcher isn't a game.
 - **Run:** the exe finds the Decomps root by `--root <dir>`, else `DECOMPS_ROOT`, else the nearest parent folder holding `shortcuts.json` and `Games/`, else `%USERPROFILE%\Decomps`. `--fullscreen` starts in couch mode. `--fetch-art` refetches all art headlessly and exits; `--scan` adds new game folders and exits.
 - **Art:** fetched in the background on start, after the library scan, for games with empty slots (retried weekly, or every game on the refresh button, which also rescans). Slots are `cover` (2:3 box art), `hero` (wide backdrop) and `logo`. Sources, in order:
   1. SteamGridDB (cover, hero, logo). Needs `STEAMGRIDDB_API_KEY=...` in `.env` here; a free key comes from steamgriddb.com > Preferences > API.

@@ -2,17 +2,7 @@
 
 ## Land the launcher
 
-- [ ] Merge `feature/decomp-frontend` into `main`. (The original handoff said `master`, but this repo's branch is `main`.)
-- [ ] Build it on Windows. Open a new terminal first so the rustup PATH change applies:
-
-  ```powershell
-  cd C:\Users\micha\Decomps\launcher
-  cargo build --release
-  ```
-
-  Output: `launcher\target\release\decomps-launcher.exe`. Rust (rustup, MSVC toolchain) and VS 2022 Build Tools are already installed.
-- [ ] Check shortcuts still sync: `python3 tools/sync_shortcuts.py --check --external` should print only `ok` lines.
-- [ ] Optional: Start Menu shortcuts for the launcher itself, one windowed and one with `--fullscreen` for couch mode.
+Done 2026-11-07: merged to `master` and built at `launcher\target\release\decomps-launcher.exe`. Start Menu and Desktop shortcuts called **Decomps Launcher** point at it, and `sync_shortcuts.py --check --external` prints only `ok`.
 
 ## SteamGridDB art
 
